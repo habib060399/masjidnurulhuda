@@ -1,0 +1,83 @@
+<?php
+defined('BASEPATH') or exit('No direct script access allowed');
+
+class User extends CI_Controller
+{
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->helper(array('form', 'url'));
+        $this->load->model("UserModel");
+        $this->load->model("PetugasModel");
+        $this->load->helper("Fungsi");
+    }
+    public function index()
+    {
+        $data['tbl_transfer'] = $this->UserModel->tampilSedekah()->result_array();
+        $agenda = $this->UserModel->getAgenda();
+        $album = $this->UserModel->getAlbum();
+        $pemasukan = $this->UserModel->getPemasukan();
+        $pengeluaran = $this->UserModel->getPengeluaran();
+        $kategori = $this->PetugasModel->getKategori();
+        $donasi = $this->UserModel->tampilSedekah();
+        $data = array(
+            'kategori' => $kategori,
+            'pengeluaran' => $pengeluaran,
+            'pemasukan' => $pemasukan,
+            'album' => $album,
+            'agenda' => $agenda,
+            'donasi' => $donasi
+        );
+        $this->load->view('sidebar');
+        $this->load->view('slider');
+        $this->load->view('home', $data);
+    }
+
+    public function tambahtransfer()
+    {
+        $this->load->view('home');
+    }
+
+    public function tambahAksi()
+    {
+        $config['upload_path']          = './uploads/';
+        $config['allowed_types']        = 'gif|jpg|png';
+        $config['max_size']             = 100;
+        $config['max_width']            = 1024;
+        $config['max_height']           = 768;
+
+        $this->load->library('upload', $config);
+
+
+        if (!$this->upload->do_upload('image')) {
+            $error = array('error' => $this->upload->display_errors());
+
+            $this->load->view('home', $error);
+        } else {
+            $id_transfer = $this->input->post('id_transfer');
+            $nama = $this->input->post('nama');
+            $no_rekening = $this->input->post('no_rekening');
+            $nama_bank = $this->input->post('nama_bank');
+            $jumlah = $this->input->post('jumlah');
+            $tgl_transfer = $this->input->post('tgl_transfer');
+            $status = $this->input->post('status');
+            $image = $this->upload->do_upload('image');
+
+            $data = array(
+
+                'id_transfer' => $id_transfer,
+                'nama' => $nama,
+                'no_rekening' => $no_rekening,
+                'nama_bank' => $nama_bank,
+                'jumlah' => $jumlah,
+                'tgl_transfer' => $tgl_transfer,
+                'status' => $status,
+                'image' => $image
+            );
+
+            $this->UserModel->insertSedekah('tbl_transfer', $data);
+
+            redirect('User/index');
+        }
+    }
+}
